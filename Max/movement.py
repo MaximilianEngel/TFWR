@@ -18,5 +18,4 @@ def better_movement(y_dir, next_move):
 			next_move = y_dir
 		else:
 			next_move = East
-	return y_dir, next_move 
-		
+	return y_dir, next_move
