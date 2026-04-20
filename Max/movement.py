@@ -33,12 +33,10 @@ def default_movement():
 	set_next_direction(next_move)
 	
 def moveTo(tx,ty):
-	world_smaller = get_my_world_size() < get_world_size()
 	x,y = get_coordinates()
-	if not world_smaller:
-		vector = calc_best_vector(x, y, tx, ty, get_my_world_size())
-	else:
-		vector = (tx - x, ty - y)
+	
+	vector = calc_best_vector(x, y, tx, ty)
+	
 	directions = [East, North]
 	if 0 > vector[0]:
 		directions[0] = West
@@ -50,6 +48,7 @@ def moveTo(tx,ty):
 	index_farther_direction = toggle_binary(sv["index"])
 	closer_vector = sv["value"]
 	farther_vector = abs_vector[index_farther_direction]
+	
 	for step_count in range(abs(closer_vector)):
 		move(directions[0])
 		move(directions[1])
@@ -57,7 +56,10 @@ def moveTo(tx,ty):
 	for remaining_steps in range(farther_vector - closer_vector):  
 		move(directions[index_farther_direction])
 
-		
+
+
+############################## GETTER/SETTER ###############################
+
 def get_current_y_direction():
 	global current_y_direction
 	return current_y_direction
@@ -82,6 +84,7 @@ def set_next_direction(direction):
 		
 def set_my_world_size(n):
 	global my_world_size
+	set_my_world_size_tool()
 	if n > get_world_size():
 		print("Given world_size is too big")
 		return
@@ -97,3 +100,17 @@ def reset_default_movement():
 	moveTo(0,0)
 	current_y_direction = North
 	next_direction = North
+
+############################## QOL Functions ###############################
+def calc_closest_point(coordinates_list):
+	x, y = get_coordinates()
+	least_step_amount = get_my_world_size()
+	closest_coordinate = None
+	for coordinate in coordinates_list:
+		best_vector = calc_best_vector(x,y,coordinate[0], coordinate[1])
+		total_steps = abs(best_vector[0]) + abs(best_vector[1])
+		if total_steps < least_step_amount:
+			least_step_amount = total_steps
+			closest_coordinate = coordinate
+	return (closest_coordinate[0], closest_coordinate[1])
+		

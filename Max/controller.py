@@ -21,7 +21,7 @@ def start_program(str_program):
 def default_program():
 	set_pumpkin_plan()
 	reset_default_movement()
-	while(num_items(Items.Power) > 19700):
+	while(num_items(Items.Power) > 1000):
 		#default value for harvest_mode
 		set_harvest_mode("tree_harvest")
 		 	
@@ -32,7 +32,7 @@ def default_program():
 		
 		execute_harvest()
 		default_movement()
-	sunflower_rush_program(2)
+	sunflower_rush_program(1)
 
 def sunflower_rush_program(n = -1):
 	while(n != 0):

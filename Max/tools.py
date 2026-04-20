@@ -1,4 +1,7 @@
 from __builtins__ import *
+
+my_world_size_tool = get_world_size()
+
 def toggle(options, value):
 	x,y = options
 	if value == x:
@@ -43,9 +46,18 @@ def get_smallest(list):
 			index += 1
 	return {"value": smallest,"index": index}
 
-def calc_best_vector(x, y, tx, ty, world_size=get_my_world_size()):
-	ws = world_size
+def set_my_world_size_tool(ws):
+	global my_world_size_tool
+	my_world_size_tool = ws
+
+def calc_best_vector(x, y, tx, ty):
+	ws = get_my_world_size_tool()
 	vector = [tx - x, ty - y]
+	
+	#if smaller world is simulated, we cant edge jump therefore normal vector needed
+	if ws < get_world_size():
+		return vector
+	
 	edge_jump_vector = []
 	for distance in vector:
 		#distance if utilize jump over edge
@@ -63,3 +75,7 @@ def calc_best_vector(x, y, tx, ty, world_size=get_my_world_size()):
 			best_vector.append(edge_jump_vector[i])
 
 	return best_vector
+	
+def get_my_world_size_tool():
+	global my_world_size_tool
+	return my_world_size_tool 
