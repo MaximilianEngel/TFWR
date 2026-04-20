@@ -1,7 +1,6 @@
 from __builtins__ import *
 
-if get_pos_y() == 0 and get_pos_x() == 0:
-	clear()
+clear()
 sunflowerDict = {}
 for petalamount in range(7, 16): # Dicts for coordinates later
 	sunflowerDict[petalamount] = []
@@ -27,11 +26,13 @@ for _ in range(get_world_size() / 2):
 			move(South)
 		else:
 			move(East)
-
-for ListNumber in range(15, 6, -1):
-	index = 0
-	for sunflowerList in sunflowerDict[ListNumber]:
-		CordX, CordY = sunflowerList[index]
+for list_number in range(15, 6, -1):
+	if list_number % 2 == 0:
+		index = -1
+	else:
+		index = 0
+	for sunflower_list in sunflowerDict[list_number]:
+		CordX, CordY = sunflowerDict[list_number][index]
 		MoveX = get_pos_x() - CordX
 		if MoveX < 0:
 			for _ in range(abs(MoveX)):
@@ -47,4 +48,7 @@ for ListNumber in range(15, 6, -1):
 			for _ in range(abs(MoveY)):
 				move(South)
 		harvest()
-		index += 1
+		if index >= 0:
+			index += 1
+		else:
+			index -= 1
