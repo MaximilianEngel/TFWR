@@ -1,10 +1,12 @@
 from __builtins__ import *
 from tools import *
 from watering import *
+from movement import *
 
 gap_filler = "Carrot"
 pumpkins = {}
 last_checked_pumpkin = ""
+sunflower_dict = {}
 
 def pumpkin_plant_dumb():
 	if get_ground_type() != Grounds.Soil:
@@ -47,12 +49,16 @@ def pumpkin_harvest():
 	#if we made it to the start_point of checked pumpkin
 	pumpkin = pp[get_last_checked_pumpkin()]
 	start_x, start_y = pumpkin["boundries"][0]
+	
 	if x == start_x and y == start_y:
+		
 		if pumpkin["harvestable"] and can_harvest():
 			harvest()
 			pumpkin["harvestable"] = False
+			
 		elif not pumpkin["harvestable"] and can_harvest():
 			pumpkin["harvestable"] = True
+	
 	else:
 		pumpkin["harvestable"] = pumpkin["harvestable"] and can_harvest()
 	
@@ -70,24 +76,48 @@ def plant_grass():
 		till()
 
 def plant_sunflower():
-	pass
+	global sunflower_dict
+	harvest()
+	if get_ground_type() != Grounds.Soil:
+		till()
+	plant(Entities.Sunflower)
+	petals = measure()
+	sunflower_dict[petals].append(get_coordinates())
+	
+def plant_sunflower_field():
+	field_incomplete = True
+	reset_default_movement()
+	while(field_incomplete):
+		plant_sunflower()
+		default_movement()
+		if get_coordinates() == (0,0):
+			field_incomplete = False
+		
+	
+def sunflower_harvest_clean():
+	global sunflower_dict 
+	for petal_count in range(15, 6, -1):
+		for sunflower_coordinates in sunflower_dict[petal_count]:
+			tx, ty = sunflower_coordinates
+			moveTo(tx, ty)
+			wait_for_harvest(can_harvest())
+	reset_sunflower_dict()
+
+
+############################## GETTER/SETTER ###############################
 		
 def set_pumpkin_plan(ps=6):
 	global pumpkins
 	pumpkins = {}
-	border = get_world_size() - ps
+	border = get_my_world_size() - ps
 	start_a = (0,0)
 	start_b = (0, border)
 	start_c = (border, 0)
 	start_d = (border, border)
-	start_e = (8,0)
-	start_f = (0,8)
-	start_g = (8,8)
-	start_h = (8,16)
-	start_i = (16,8)
+
 	
 	i = 0
-	for start in [start_a, start_b, start_c, start_d, start_e, start_f, start_g, start_h, start_i]:
+	for start in [start_a, start_b, start_c, start_d]:
 		pumpkins["pumpkin_" + str(i)] = {"harvestable": False, "boundries": ((start[0], start[1]),(start[0] + ps - 1, start[1] + ps - 1))}
 		i = i + 1 
 
@@ -115,3 +145,19 @@ def set_last_checked_pumpkin(a):
 def get_last_checked_pumpkin():
 	global last_checked_pumpkin
 	return	last_checked_pumpkin
+
+def reset_sunflower_dict():
+	global sunflower_dict 
+	sunflower_dict = {}
+	for petal_count in range(15, 6, -1): 
+		sunflower_dict[petal_count] = []
+
+############################## QOL Functions ###############################
+
+def wait_for_harvest(harvestable):
+	if harvestable:
+		harvest()
+	else:
+		do_a_flip()
+		print("DAMN WAITING TIME")
+		wait_for_harvest(can_harvest())
