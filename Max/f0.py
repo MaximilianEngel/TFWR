@@ -1,5 +1,5 @@
 from tools import *
 from movement import *
-
-print(get_entity_type())
+data = {1:1,2:3,4:5}
+print(len({1:1,2:3,4:5}))
 

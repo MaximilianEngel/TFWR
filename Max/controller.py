@@ -2,11 +2,6 @@ from tools import *
 from harvestModes import *
 from movement import *
 
-harvest_mode = "tree_harvest"
-harvest_modes = {
-	"tree_harvest": tree_harvest,
-	"pumpkin_harvest": pumpkin_harvest
-}
 current_program = ""
 
 def start_program(str_program):
@@ -16,43 +11,41 @@ def start_program(str_program):
 		return
 	current_program = str_program
 	programs[str_program]()
-	
-def default_program():
-	create_pumpkin_plan()
-	reset_default_movement()
-	while(num_items(Items.Power) > 1000):
-		#default value for harvest_mode
-		set_harvest_mode("tree_harvest")
-		 	
-		pumpkin = get_pumpkin_nr_below()
-		if pumpkin != None:
-			set_harvest_mode("pumpkin_harvest")
-			set_last_checked_pumpkin(pumpkin)	
-		
-		execute_harvest()
-		default_movement()
-	sunflower_rush_program(1)
 
 def pumpkin_program():
+	reset_default_movement()
+	initial_run = True
+	initial_point = get_coordinates()
+	pumpkin_entities = [Entities.Pumpkin, Entities.Dead_Pumpkin]
+	
 	create_pumpkin_plan()
 	pp = get_pumpkin_plan()
-	reset_default_movement()
 	
 	while(get_current_program() == "pp"):
+		#if we established the field we can just check wether pumpkin beneath us or unsoiled
+		if not initial_run:
+			if (get_entity_type() not in pumpkin_entities) and (get_ground_type() != Grounds.Soil):
+				default_movement()
+				continue
 		current_pumpkin = get_pumpkin_nr_below()
 		last_checked = get_last_checked_pumpkin()
+
 		#if we enter a new pumpkin and there is no entry_point entry make entry for entry_point
 		if current_pumpkin != None and current_pumpkin != last_checked:
-			entry_point = pp["pumpkins"][current_pumpkin]["entry_point"]
+			entry_point = get_entry_point(current_pumpkin)
 			if entry_point == None:
 				set_entry_point(current_pumpkin)
 			
 		if current_pumpkin != None:
-			pumpkin_production(pp, current_pumpkin)
+			pumpkin_production(current_pumpkin, initial_run)
 			set_last_checked_pumpkin(current_pumpkin)
-			default_movement()
-		else:
-			default_movement()
+		elif initial_run and (get_entity_type() != None):
+			wait_for_harvest(can_harvest())
+		default_movement()
+		
+		if get_coordinates() == initial_point:
+			initial_run = False 
+		
 			
 def sunflower_rush_program():
 	while(get_current_program == "sr"):
@@ -91,7 +84,6 @@ def get_current_program():
 ############################## PROGRAM LIST ###############################
 	
 programs = {
-	"default": default_program,
 	"sr": sunflower_rush_program,
 	"pp": pumpkin_program
 }
