@@ -84,7 +84,7 @@ def set_next_direction(direction):
 		
 def set_my_world_size(n):
 	global my_world_size
-	set_my_world_size_tool()
+	set_my_world_size_tool(n)
 	if n > get_world_size():
 		print("Given world_size is too big")
 		return

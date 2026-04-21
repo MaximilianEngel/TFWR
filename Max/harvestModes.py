@@ -4,16 +4,8 @@ from watering import *
 from movement import *
 
 gap_filler = "Carrot"
-pumpkins = {}
-last_checked_pumpkin = ""
+pumpkin_plan = {"pumpkins": {},"last_checked": None}
 sunflower_dict = {}
-
-def pumpkin_plant_dumb():
-	if get_ground_type() != Grounds.Soil:
-		till()
-	if can_harvest():
-		harvest()
-	plant(Entities.Pumpkin)
 
 def tree_harvest():
 	global gap_filler
@@ -39,32 +31,32 @@ def tree_harvest():
 			plant_grass()
 		return False
 
-def pumpkin_harvest():
-	if get_ground_type() != Grounds.Soil:
-		till()
-	x,y = get_coordinates()
-	pp = get_pumpkin_plan()
+
+def pumpkin_production(pumpkin_plan, current_pumpkin_nr): 
 	
+	position = get_coordinates()
+	pumpkin_entry_point = get_entry_point(current_pumpkin_nr)
+	harvestable = get_harvestable(current_pumpkin_nr)
 	
-	#if we made it to the start_point of checked pumpkin
-	pumpkin = pp[get_last_checked_pumpkin()]
-	start_x, start_y = pumpkin["boundries"][0]
-	
-	if x == start_x and y == start_y:
+	#if we made it to the entry_point of checked pumpkin	
+	if position == pumpkin_entry_point:
 		
-		if pumpkin["harvestable"] and can_harvest():
+		if harvestable and can_harvest():
 			harvest()
-			pumpkin["harvestable"] = False
+			set_harvestable(current_pumpkin_nr, False)
 			
-		elif not pumpkin["harvestable"] and can_harvest():
-			pumpkin["harvestable"] = True
+		elif not harvestable and can_harvest():
+			set_harvestable(current_pumpkin_nr, True)
 	
 	else:
-		pumpkin["harvestable"] = pumpkin["harvestable"] and can_harvest()
+		set_harvestable(current_pumpkin_nr, harvestable and can_harvest())
 	
 	if get_entity_type() != Entities.Pumpkin:
-		plant(Entities.Pumpkin)	
-	
+		if can_harvest():
+			wait_for_harvest(can_harvest)
+		if get_ground_type() != Grounds.Soil:
+			till()
+		plant(Entities.Pumpkin)
 	
 def plant_carrot():
 	if(get_ground_type() != Grounds.Soil):
@@ -118,28 +110,51 @@ def sunflower_harvest_optimized():
 	reset_sunflower_dict()
 
 ############################## GETTER/SETTER ###############################
-		
-def set_pumpkin_plan(ps=6):
-	global pumpkins
-	pumpkins = {}
-	border = get_my_world_size() - ps
-	start_a = (0,0)
-	start_b = (0, border)
-	start_c = (border, 0)
-	start_d = (border, border)
 
+def create_pumpkin_plan(ps=6, space_between=1, ws=get_my_world_size()):
 	
-	i = 0
-	for start in [start_a, start_b, start_c, start_d]:
-		pumpkins["pumpkin_" + str(i)] = {"harvestable": False, "boundries": ((start[0], start[1]),(start[0] + ps - 1, start[1] + ps - 1))}
-		i = i + 1 
+	field_size = ps + space_between
+	
+	#possible_pumpkins_per_dimension (pppd)
+	pppd, remainer = calc_possible_fields(ps, space_between, ws)
+	
+	#remainer pumpkins
+	x_pump, y_pump, re_pumpkin_size, re_remainer = calculate_fields_in_remainer(remainer, space_between, ws)
+	
+	start_points = list(range(0, pppd * field_size, field_size))
+	end_point_of_field = (start_points[-1] + field_size - 1) 
+	
+	coordinates=[]
+	for i in start_points:
+		for j in start_points:
+			coordinates.append((i,j))
+			
+	entry_index = 0
+	for start_point in coordinates:
+		create_pumpkin_entry(entry_index, ps, start_point[0], start_point[1])
+		entry_index += 1
 
+	offset = (end_point_of_field + space_between)
+	re_field_size = re_pumpkin_size + space_between
+
+	re_start_points_x = list(range(0, x_pump * re_field_size, re_field_size))
+	re_start_points_y = list(range(0, y_pump * re_field_size, re_field_size)) 
+	
+	for start_point in re_start_points_x:
+		create_pumpkin_entry(entry_index, re_pumpkin_size, start_point, offset)
+		entry_index += 1
+		
+	for start_point in re_start_points_y:
+		create_pumpkin_entry(entry_index, re_pumpkin_size, offset, start_point)
+		entry_index += 1
+	 
+	
 def get_pumpkin_plan():
-	global pumpkins
-	return pumpkins
+	global pumpkin_plan
+	return pumpkin_plan
 
 def get_pumpkin_nr_below():
-	pumpkin_plan = get_pumpkin_plan()
+	pumpkin_plan = get_pumpkin_plan()["pumpkins"]
 	for key in pumpkin_plan:
 		pumpkin = pumpkin_plan[key]
 		boundries = pumpkin["boundries"]
@@ -149,15 +164,31 @@ def get_pumpkin_nr_below():
 		range = ex - sx + 1
 		if in_square_boundries(sx, sy, range):
 			return key
-	return ""
+	return None
+
+def set_entry_point(pumpkin_nr):
+	global pumpkin_plan
+	pumpkin_plan["pumpkins"][pumpkin_nr]["entry_point"] = get_coordinates()
 	
-def set_last_checked_pumpkin(a):
-	global last_checked_pumpkin
-	last_checked_pumpkin = a
+def get_entry_point(pumpkin_nr):
+	global pumpkin_plan
+	return pumpkin_plan["pumpkins"][pumpkin_nr]["entry_point"]
+
+def set_harvestable(pumpkin_nr, b):
+	global pumpkin_plan
+	pumpkin_plan["pumpkins"][pumpkin_nr]["harvestable"] = b
+	
+def get_harvestable(pumpkin_nr):
+	global pumpkin_plan 
+	return pumpkin_plan["pumpkins"][pumpkin_nr]["harvestable"]
+	
+def set_last_checked_pumpkin(n):
+	global pumpkin_plan
+	pumpkin_plan["last_checked"] = n
 	
 def get_last_checked_pumpkin():
-	global last_checked_pumpkin
-	return	last_checked_pumpkin
+	pp = get_pumpkin_plan()
+	return	pp["last_checked"]
 
 def reset_sunflower_dict():
 	global sunflower_dict 
@@ -174,3 +205,6 @@ def wait_for_harvest(harvestable):
 		do_a_flip()
 		print("DAMN WAITING TIME")
 		wait_for_harvest(can_harvest())
+		
+def create_pumpkin_entry(num, ps, x, y):
+	get_pumpkin_plan()["pumpkins"][num] = {"harvestable": False, "boundries": ((x, y),(x + ps - 1, y + ps - 1)), "entry_point": None}

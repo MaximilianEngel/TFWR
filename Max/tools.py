@@ -79,3 +79,20 @@ def calc_best_vector(x, y, tx, ty):
 def get_my_world_size_tool():
 	global my_world_size_tool
 	return my_world_size_tool 
+
+#returns list: [#possible_fields, remainer]
+def calc_possible_fields(field_size, space_between, board_size=get_my_world_size_tool()):
+	field_amount = 0
+	if field_size < board_size:
+		field_amount += ((board_size - field_size) // (field_size + space_between)) + 1
+		remainer = board_size - ((field_amount * field_size) + ((field_amount - 1) * space_between))
+		return [field_amount, remainer]
+	else: 
+		return [0, board_size] 
+		
+def calculate_fields_in_remainer(remainer, space_between=1, ws=get_my_world_size()):
+	pumpkin_size = remainer - space_between
+	fields_x, re_remainer = calc_possible_fields(pumpkin_size, space_between, ws) 
+	fields_y = fields_x - 1
+	return [fields_x, fields_y, pumpkin_size, re_remainer]
+	
