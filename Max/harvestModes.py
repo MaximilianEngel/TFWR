@@ -2,9 +2,12 @@ from __builtins__ import *
 from tools import *
 from watering import *
 from movement import *
+from resource_manager import *
+from funFile import dress_properly
 
 gap_filler = "Carrot"
 pumpkin_plan = {"pumpkins": {},"last_checked": None}
+poly_wish_dict = {}
 sunflower_dict = {}
 
 def tree_harvest():
@@ -31,6 +34,34 @@ def tree_harvest():
 			plant_grass()
 		return False
 
+def poly_plant_harvest(entity_pool=[Entities.Carrot, Entities.Bush, Entities.Grass, Entities.Tree]):
+	if get_entity_type() != None:
+		wait_for_harvest(can_harvest())
+	position = get_coordinates()
+	wish_dict = get_poly_wish_dict()
+	if position in wish_dict:
+		poly_entity = wish_dict[position]
+		plant_poly_entity(poly_entity)
+	else:
+		prio_list = get_poly_prio_list()
+		bell_distribution = [prio_list[1],prio_list[0],prio_list[2]]
+		bell_index = bell_random(len(prio_list))
+		if bell_distribution[bell_index] == Items.Wood:
+			if isEven(position[1]): # if on even y-coordinates
+				plant_poly_entity(Entities.Tree)
+			else:
+				plant_poly_entity(Entities.Bush)
+		
+		elif bell_distribution[bell_index] == Items.Hay:
+			plant_poly_entity(Entities.Grass)
+			
+		elif bell_distribution[bell_index] == Items.Carrot:
+			plant_poly_entity(Entities.Carrot)
+				
+		
+	
+	plant, coor = get_companion()
+	add_wish({coor:plant})
 
 def pumpkin_production(current_pumpkin_nr, initial_run): 
 	init = initial_run
@@ -159,7 +190,23 @@ def create_pumpkin_plan(ps=6, space_between=1, ws=get_my_world_size()):
 			create_pumpkin_entry(entry_index, re_pumpkin_size, offset, start_point)
 			entry_index += 1
 	 
+def get_poly_wish_dict():
+	global poly_wish_dict
+	return poly_wish_dict
 	
+def add_wish(wish):
+	global poly_wish_dict
+	for key in wish:
+		poly_wish_dict[key] = wish[key]
+	
+def remove_wish(wish):
+	global poly_wish_dict
+	poly_wish_dict.remove(wish)
+	
+def reset_wish_dict():
+	global poly_wish_dict
+	poly_wish_dict = {}
+
 def get_pumpkin_plan():
 	global pumpkin_plan
 	return pumpkin_plan
@@ -167,12 +214,12 @@ def get_pumpkin_plan():
 def get_pumpkin_nr_below(smart=True):
 	pumpkins = get_pumpkin_plan()["pumpkins"]
 	key_amount = len(pumpkins)
-	key_list = list(range(0, key_amount))
+	key_list = list(range(0, key_amount)) #dumb
 	if smart:
 		x, y = get_coordinates()
 		ws = get_my_world_size()
 		if (x > (ws // 2)) and (y > (ws // 2)):
-			key_list = list(range(key_amount - 1, -1, -1))
+			key_list = list(range(key_amount - 1, -1, -1)) #smart 
 	
 	for i in key_list:	
 		pumpkin = pumpkins[i]
@@ -220,17 +267,33 @@ def reset_pumpkin_plan():
 	pumpkin_plan = {"pumpkins": {},"last_checked": None}
 
 ############################## QOL Functions ###############################
+
+def plant_poly_entity(entity):
+	if entity == Entities.Carrot:
+		soil()
+	else:
+		unsoil()
+		if entity == Entities.Tree:
+			#watering()
+			pass
+	dress_properly(entity)
+	plant(entity)
+
 def soil():
 	if get_ground_type() != Grounds.Soil:
-			till()
-			
+		till()
+
+def unsoil():
+	if get_ground_type() == Grounds.Soil:
+		till()
+
 def wait_for_harvest(harvestable):
 	if harvestable:
 		harvest()
 	else:
-		do_a_flip()
 		print("DAMN WAITING TIME")
 		wait_for_harvest(can_harvest())
 		
-def create_pumpkin_entry(num, ps, x, y):
-	get_pumpkin_plan()["pumpkins"][num] = {"harvestable": False, "boundries": ((x, y),(x + ps - 1, y + ps - 1)), "entry_point": None}
+def create_pumpkin_entry(num, pumpkin_size, x, y):
+	get_pumpkin_plan()["pumpkins"][num] = {"harvestable": False, "boundries": ((x, y),(x + pumpkin_size - 1, y + pumpkin_size - 1)), "entry_point": None}
+	

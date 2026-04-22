@@ -12,6 +12,12 @@ def start_program(str_program):
 	current_program = str_program
 	programs[str_program]()
 
+def poly_program():
+	reset_default_movement()
+	while(get_current_program() == "poly"):
+		poly_plant_harvest()
+		default_movement()
+
 def pumpkin_program():
 	reset_default_movement()
 	initial_run = True
@@ -22,11 +28,13 @@ def pumpkin_program():
 	pp = get_pumpkin_plan()
 	
 	while(get_current_program() == "pp"):
+		
 		#if we established the field we can just check wether pumpkin beneath us or unsoiled
 		if not initial_run:
 			if (get_entity_type() not in pumpkin_entities) and (get_ground_type() != Grounds.Soil):
 				default_movement()
 				continue
+				
 		current_pumpkin = get_pumpkin_nr_below()
 		last_checked = get_last_checked_pumpkin()
 
@@ -48,11 +56,10 @@ def pumpkin_program():
 		
 			
 def sunflower_rush_program():
-	while(get_current_program == "sr"):
+	while(get_current_program() == "sr"):
 		reset_sunflower_dict()
 		plant_sunflower_field()
 		sunflower_harvest_clean()
-		n -= 1
 
 def execute_harvest():
 	harvest_modes[harvest_mode]()
@@ -85,5 +92,6 @@ def get_current_program():
 	
 programs = {
 	"sr": sunflower_rush_program,
-	"pp": pumpkin_program
+	"pp": pumpkin_program,
+	"poly": poly_program
 }
