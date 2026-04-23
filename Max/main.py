@@ -1,11 +1,11 @@
 	
 from __builtins__ import *
-from movement import *
-from watering import *
-from harvestModes import *
 from controller import *
-from tools import *
+from movement import set_my_world_size
 
 clear()
+set_my_world_size(8)
 while(True):
-	start_program("default")
+	start_program("cactus")
+	
+	

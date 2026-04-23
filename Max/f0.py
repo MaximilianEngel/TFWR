@@ -1,4 +1,10 @@
 from tools import *
 from movement import *
+from resource_manager import *
+from harvestModes import *
 
-moveTo(10,4)
+harvest()
+soil()
+plant(Entities.Cactus)
+x = measure()
+print(x)
