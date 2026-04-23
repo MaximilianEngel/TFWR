@@ -1,11 +1,15 @@
 from tools import *
 from harvestModes import *
 from movement import *
+from sunflower_manager import *
+from pumpkin_manager import *
+from cactus_manager import *
 
 current_program = ""
 
 def start_program(str_program):
 	global current_program
+	
 	if str_program not in programs:
 		print("invalid programm")
 		return
@@ -13,11 +17,22 @@ def start_program(str_program):
 	programs[str_program]()
 
 def poly_program():
-	reset_default_movement()
 	while(get_current_program() == "poly"):
+		reset_default_movement()
 		poly_plant_harvest()
 		default_movement()
 
+def cactus_program():
+	reset_snake_movement()
+	while(get_current_program() == "cactus"):
+		if get_entity_type() != Entities.Cactus:
+			plant_cactus()
+		smart_swap()
+		b_next_column = snake_movement()
+		if b_next_column:
+			start_new_column()
+			
+		
 def pumpkin_program():
 	reset_default_movement()
 	initial_run = True
@@ -27,7 +42,7 @@ def pumpkin_program():
 	create_pumpkin_plan()
 	pp = get_pumpkin_plan()
 	
-	while(get_current_program() == "pp"):
+	while(get_current_program() == "pump"):
 		
 		#if we established the field we can just check wether pumpkin beneath us or unsoiled
 		if not initial_run:
@@ -54,28 +69,14 @@ def pumpkin_program():
 		if get_coordinates() == initial_point:
 			initial_run = False 
 		
-			
+		
 def sunflower_rush_program():
 	while(get_current_program() == "sr"):
 		reset_sunflower_dict()
 		plant_sunflower_field()
 		sunflower_harvest_clean()
 
-def execute_harvest():
-	harvest_modes[harvest_mode]()
 
-def set_harvest_mode(hm):
-	global harvest_mode
-	global harvest_modes
-	if hm not in harvest_modes:
-		print("invalid harvest_mode")
-		return
-	harvest_mode = hm
-	
-def get_harvest_mode():
-	global harvest_mode
-	return	harvest_mode
-	
 def set_current_programm(cp):
 	global current_program
 	global programs
@@ -92,6 +93,7 @@ def get_current_program():
 	
 programs = {
 	"sr": sunflower_rush_program,
-	"pp": pumpkin_program,
-	"poly": poly_program
+	"pump": pumpkin_program,
+	"poly": poly_program,
+	"cactus": cactus_program
 }

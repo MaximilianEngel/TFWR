@@ -2,6 +2,6 @@ from tools import *
 from movement import *
 from harvestModes import *
 
-def poly_plant_harvest(plant_list=[Entities.Bush, Entities.Carrot, Entities.Grass, Entities.Tree]):
+def cactus_harvest():
+	pass
 	
-	return plant_list

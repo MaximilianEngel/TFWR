@@ -4,7 +4,8 @@ from controller import *
 from movement import set_my_world_size
 
 clear()
-#set_my_world_size(5)
+set_my_world_size(8)
 while(True):
-	start_program("poly")
+	start_program("cactus")
+	
 	

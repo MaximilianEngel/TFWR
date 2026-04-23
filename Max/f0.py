@@ -3,4 +3,8 @@ from movement import *
 from resource_manager import *
 from harvestModes import *
 
-x = {"a":0}
+harvest()
+soil()
+plant(Entities.Cactus)
+x = measure()
+print(x)
