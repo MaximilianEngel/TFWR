@@ -40,6 +40,8 @@ def snake_movement():
 	y_dir = get_current_y_direction()
 	x,y = get_coordinates()
 	
+	moved_in_next_column = next_move in [West, East]
+		
 	move(next_move)
 	x,y = get_coordinates()
 	ws = get_my_world_size()
@@ -61,7 +63,9 @@ def snake_movement():
 	set_current_x_direction(x_dir)
 	set_current_y_direction(y_dir)
 	set_next_direction(next_move)
-	return next_move in [North, South]
+	return moved_in_next_column
+	
+	
 def moveTo(tx,ty):
 	x,y = get_coordinates()
 	
@@ -144,8 +148,38 @@ def calc_closest_point(coordinates_list):
 			closest_coordinate = coordinate
 	return (closest_coordinate[0], closest_coordinate[1])	
 	
-
+def create_corner_map(n):
+	corner_map = {
+		(0,0) : (South, West),
+		(0,n-1) : (North, West),
+		(n-1,0) : (South, East),
+		(n-1,n-1): (North, East)
+	}
+	return corner_map
+	
+def point_reflect(coor):
+	ws = get_my_world_size()
+	x_refl = (ws - 1) - coor[0]
+	y_refl = (ws - 1) - coor[1]
+	return (x_refl,y_refl)
+	
+def axis_mirror(coor, axis):
+	x, y = coor
+	ws = get_my_world_size()
+	if axis == "x":
+		y_mirror = (ws - 1) - y
+		return (x, y_mirror)
+	
+	elif axis == "y":
+		x_mirror = (ws - 1) - x
+		return (x_mirror, y)
+		
+	else:
+		print("unknown axis: axis_mirror()")
+		return None
+		
 ############################## GETTER/SETTER ###############################
+	
 def get_current_x_direction():
 	global current_x_direction
 	return current_x_direction

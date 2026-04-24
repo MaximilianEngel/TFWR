@@ -17,21 +17,53 @@ def start_program(str_program):
 	programs[str_program]()
 
 def poly_program():
+	reset_default_movement()
 	while(get_current_program() == "poly"):
-		reset_default_movement()
 		poly_plant_harvest()
 		default_movement()
 
-def cactus_program():
+def cactus_program_column_driven():
 	reset_snake_movement()
+	reset_c_columns()
 	while(get_current_program() == "cactus"):
 		if get_entity_type() != Entities.Cactus:
-			plant_cactus()
-		smart_swap()
+			soil()
+			plant(Entities.Cactus)
+		size = measure()
+		position = get_coordinates()
+		add_cactus_to_column(position, size)
+		
+		smart_swap(size)
 		b_next_column = snake_movement()
 		if b_next_column:
 			start_new_column()
-			
+
+def cactus_program():
+	reset_snake_movement()
+	ws = get_my_world_size()
+	ws_even = isEven(ws)
+	cm = create_corner_map(ws)
+	was_swapped = False
+	
+	checkpoints = initialize_checkpoints(get_coordinates(), ws_even)
+	
+	while(get_current_program() == "cactus"):
+		
+		if get_entity_type() != Entities.Cactus:
+			soil()
+			plant(Entities.Cactus)
+		
+		was_swapped = swap_cactus()
+		if was_swapped:
+			for coordinate in checkpoints:
+				checkpoints[coordinate] = False
+	
+		snake_movement()
+		position = get_coordinates()
+		if position in cm:
+			was_harvested = verify_checkpoints(position, checkpoints, ws_even)
+			if was_harvested:
+				break
 		
 def pumpkin_program():
 	reset_default_movement()
@@ -89,6 +121,38 @@ def get_current_program():
 	global current_program
 	return current_program
 
+def verify_checkpoints(position, dict_checkpoints, ws_even):
+	remove_key = None				
+	for coordinate in dict_checkpoints:
+		if coordinate == position:
+			if dict_checkpoints[coordinate] == True:
+				wait_for_harvest(can_harvest())
+				return True
+			else:
+				remove_key = coordinate
+	
+					
+	next_dir = get_next_direction()
+	if next_dir in [North, South]:
+		if ws_even:
+			dict_checkpoints[axis_mirror(position, "y")] = True
+		else:
+			dict_checkpoints[point_reflect(position)] = True
+		if remove_key:	
+			dict_checkpoints.pop(remove_key)
+	return False
+
+def initialize_checkpoints(position, ws_even):
+	checkpoints = {}
+	if not ws_even:
+		checkpoints[point_reflect(position)] = True
+		checkpoints[axis_mirror(position, "y")] = False
+	else:
+		checkpoints[axis_mirror(position, "y")] = True
+		checkpoints[point_reflect(position)] = False
+	return checkpoints
+	
+	
 ############################## PROGRAM LIST ###############################
 	
 programs = {
