@@ -1,6 +1,6 @@
 from __builtins__ import *
 from watering import *
-from movement import *
+from coordinator import *
 from resource_manager import *
 from funFile import dress_properly
 

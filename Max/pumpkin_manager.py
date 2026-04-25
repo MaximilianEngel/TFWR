@@ -1,4 +1,4 @@
-from movement import *
+from coordinator import *
 from harvestModes import *
 
 pumpkin_plan = {"pumpkins": {},"last_checked": None}

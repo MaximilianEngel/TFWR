@@ -1,10 +1,10 @@
 from tools import *
 from harvestModes import *
-from movement import *
+from coordinator import *
 from sunflower_manager import *
 from pumpkin_manager import *
 from cactus_manager import *
-
+from cactus_manager_adv import *
 current_program = ""
 
 def start_program(str_program):
@@ -64,6 +64,14 @@ def cactus_program():
 			was_harvested = verify_checkpoints(position, checkpoints, ws_even)
 			if was_harvested:
 				break
+				
+def cactus_program_adv():
+	reset_snake_movement()
+	reset_cactus_field()
+	while(get_current_program() == "c_adv"):
+		plant_cactus()
+		cactus_movement(get_blocked_fields(), get_x_blocked(), get_check_list())
+		
 		
 def pumpkin_program():
 	reset_default_movement()
@@ -159,5 +167,6 @@ programs = {
 	"sr": sunflower_rush_program,
 	"pump": pumpkin_program,
 	"poly": poly_program,
-	"cactus": cactus_program
+	"cactus": cactus_program,
+	"c_adv": cactus_program_adv
 }

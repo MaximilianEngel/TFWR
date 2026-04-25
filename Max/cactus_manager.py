@@ -1,5 +1,5 @@
 from tools import *
-from movement import *
+from coordinator import *
 from harvestModes import *
 cactus_column_current = {}
 cactus_column_previous = {}
@@ -29,13 +29,9 @@ def swap_cactus_helper(dir):
 		c_ahead = temp
 		is_swapped = True
 	
-		
 	return is_swapped
 	
 	
-def 
-
-
 def smart_swap(cac_size):
 	x, y = get_coordinates()
 	x_dir = get_current_x_direction()

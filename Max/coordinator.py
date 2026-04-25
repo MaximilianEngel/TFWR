@@ -15,7 +15,6 @@ def toggle_dir(direction):
 	}
 	return toggle_map[direction]
 		
-		
 def default_movement():
 	next_move = get_next_direction()
 	y_dir = get_current_y_direction()
@@ -48,7 +47,6 @@ def snake_movement():
 	if (y == (ws - 1) and y_dir == North) or (y == 0 and y_dir == South):
 		if next_move == West or next_move == East:
 			y_dir = toggle_dir(y_dir)
-			set_current_y_direction(y_dir)
 			next_move = y_dir
 		else:
 			next_move = x_dir
@@ -89,7 +87,37 @@ def moveTo(tx,ty):
 	
 	for remaining_steps in range(farther_vector - closer_vector):  
 		move(directions[index_farther_direction])
-
+		
+def cactus_movement(blocked_fields, l_prio, h_prio):
+	coor_change = {
+		North: (0, +1),
+		West: (-1, 0),
+		East: (+1, 0),
+		South: (0, -1)
+	}
+	
+	next_move = get_next_direction()
+	x_dir = get_current_x_direction()
+	y_dir = get_current_y_direction()
+	
+	x,y = get_coordinates()
+	
+	square_ahead = (x + coor_change[previous_move][0], y + coor_change[previous_move][1])
+		
+	
+	if next_y > get_my_world_size() - 1 or next_y < 0:
+		set_current_y_direction(toggle_dir(y_dir))
+		set_next_direction(x_dir)
+		
+	elif next_x > get_my_world_size() - 1 or next_x < 0:
+		set_current_x_direction(toggle_dir(x_dir))
+		set_next_direction(y_dir)
+	
+		
+def prio_touched(x_dir):
+	prio_dict = {
+		East: get_
+	}
 ############################# Calculations ##############################
 
 #returns list: [#possible_fields, remainer]
@@ -178,6 +206,12 @@ def axis_mirror(coor, axis):
 		print("unknown axis: axis_mirror()")
 		return None
 		
+def create_board_map(x_start, y_start, x_size, y_size):
+	board_map = {}
+	for i in range(x_size):
+		for j in range(y_size):
+			board_map[i + x_start,j + y_start] = None
+	return board_map
 ############################## GETTER/SETTER ###############################
 	
 def get_current_x_direction():
