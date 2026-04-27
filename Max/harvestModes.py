@@ -1,6 +1,6 @@
 from __builtins__ import *
 from watering import *
-from coordinator import *
+from mapper import *
 from resource_manager import *
 from funFile import dress_properly
 
@@ -8,6 +8,11 @@ gap_filler = "Carrot"
 
 poly_wish_dict = {}
 
+def make_weird_substance(plant_func=None):
+	use_item(Items.Fertilizer)
+	if plant_func:
+		plant_func()
+	
 def poly_plant_harvest(entity_pool=[Entities.Carrot, Entities.Bush, Entities.Grass, Entities.Tree]):
 	if get_entity_type() != None:
 		wait_for_harvest(can_harvest())

@@ -19,13 +19,7 @@ def toggle_binary(n):
 def isEven(n):
 	return (n % 2 == 0)
 		
-def get_coordinates():
-	return (get_pos_x(),get_pos_y())
 
-#a -> x-coordinate start_point ; b -> y-coordinate start_point 
-def in_square_boundries(a, b, range):
-	x, y = get_coordinates()
-	return a <= x < a + range and b <= y < b + range
 
 def get_biggest(list):
 	biggest = list[0]

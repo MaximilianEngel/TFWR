@@ -1,19 +1,13 @@
 from __builtins__ import *
 from tools import *
+from mapper import *
 
 current_x_direction = None
 current_y_direction = None
 next_direction = None
-my_world_size = get_world_size()
-
-def toggle_dir(direction):
-	toggle_map = {
-		North: South,
-		South: North,
-		West: East,
-		East: West
-	}
-	return toggle_map[direction]
+prio_move = None
+last_step = None
+furthest_reached_x = 0
 		
 def default_movement():
 	next_move = get_next_direction()
@@ -88,7 +82,39 @@ def moveTo(tx,ty):
 	for remaining_steps in range(farther_vector - closer_vector):  
 		move(directions[index_farther_direction])
 		
-def cactus_movement(blocked_fields, l_prio, h_prio):
+def cactus_movement():
+	x_dir = get_current_x_direction()
+	y_dir = get_current_y_direction()
+	x, y = get_coordinates()
+	prio_move = get_prio_move()
+	last_step = get_last_step()
+	
+	if prio_move:
+		next_move = prio_move
+		
+		
+	elif last_step:
+		next_move = last_step
+	else:
+		next_move = y_dir
+	
+	if last_step in [West, East]:
+		next_move = y_dir
+	else:
+		next_move = avoid_obstacle(next_move)
+	
+	move(next_move)
+	set_last_step(next_move)
+	
+	
+		 
+def avoid_obstacle(current_move):
+	y_dir = get_current_y_direction()
+	x_dir = get_current_x_direction()
+	x,y = get_coordinates()
+	
+	blocked = get_blocked_fields()
+	free_spaces = get_free_spaces()
 	coor_change = {
 		North: (0, +1),
 		West: (-1, 0),
@@ -96,122 +122,38 @@ def cactus_movement(blocked_fields, l_prio, h_prio):
 		South: (0, -1)
 	}
 	
-	next_move = get_next_direction()
-	x_dir = get_current_x_direction()
-	y_dir = get_current_y_direction()
+	next_move = current_move 
+	square_ahead = (x + coor_change[current_move][0], y + coor_change[current_move][1])
 	
-	x,y = get_coordinates()
+	while square_ahead in blocked or not in_square_boundries(square_ahead):
+		
+		if next_move in [North, South]:
+			next_move = get_current_x_direction()
+			set_current_y_direction(toggle_dir(y_dir))
+		elif next_move in [West, East]:
+			direction_avoided = next_move
+			next_move = get_current_y_direction()
+			
+			if not in_square_boundries(square_ahead) or len(free_spaces[x + coor_change[next_move][0]]) == 0:
+				set_current_x_direction(toggle_dir(get_current_x_direction()))
+				next_move = get_current_x_direction()
+			else: 
+				set_prio_move(direction_avoided)
+				
+		square_ahead = (x + coor_change[next_move][0], y + coor_change[next_move][1])
 	
-	square_ahead = (x + coor_change[previous_move][0], y + coor_change[previous_move][1])
+	if get_prio_move() == next_move:
+		set_prio_move(None)
+		return next_move
+		
+	if (current_move == next_move) and (current_move in [West, East]):
+		next_move = get_current_y_direction()
+	
+	
+	return next_move
 		
 	
-	if next_y > get_my_world_size() - 1 or next_y < 0:
-		set_current_y_direction(toggle_dir(y_dir))
-		set_next_direction(x_dir)
-		
-	elif next_x > get_my_world_size() - 1 or next_x < 0:
-		set_current_x_direction(toggle_dir(x_dir))
-		set_next_direction(y_dir)
-	
-		
-def prio_touched(x_dir):
-	prio_dict = {
-		East: get_
-	}
-############################# Calculations ##############################
 
-#returns list: [#possible_fields, remainer]
-def calc_possible_fields(field_size, space_between, board_size=get_my_world_size()):
-	field_amount = 0
-	if field_size < board_size:
-		field_amount += ((board_size - field_size) // (field_size + space_between)) + 1
-		remainer = board_size - ((field_amount * field_size) + ((field_amount - 1) * space_between))
-		return [field_amount, remainer]
-	elif field_size == board_size:
-		return [1, 0]
-	else: 
-		return [0, board_size] 
-		
-def calculate_fields_in_remainer(remainer, space_between=1, ws=get_my_world_size()):
-	pumpkin_size = remainer - space_between
-	fields_x, re_remainer = calc_possible_fields(pumpkin_size, space_between, ws) 
-	fields_y = fields_x - 1
-	return [fields_x, fields_y, pumpkin_size, re_remainer]	
-
-def calc_best_vector(x, y, tx, ty):
-	ws = get_my_world_size()
-	vector = [tx - x, ty - y]
-	
-	#if smaller world is simulated, we cant edge jump therefore normal vector needed
-	if ws < get_world_size():
-		return vector
-	
-	edge_jump_vector = []
-	for distance in vector:
-		#distance if utilize jump over edge
-		if distance > 0:
-			edge_jump_vector.append(distance - ws)
-		else:
-			edge_jump_vector.append(ws + distance)
-	
-	best_vector = []
-	for i in range(2):
-		smaller_distance = get_smallest([abs(vector[i]), abs(edge_jump_vector[i])])
-		if smaller_distance["index"] == 0:
-			best_vector.append(vector[i])
-		else:
-			best_vector.append(edge_jump_vector[i])
-
-	return best_vector
-	
-def calc_closest_point(coordinates_list):
-	x, y = get_coordinates()
-	least_step_amount = get_my_world_size()
-	closest_coordinate = None
-	for coordinate in coordinates_list:
-		best_vector = calc_best_vector(x,y,coordinate[0], coordinate[1])
-		total_steps = abs(best_vector[0]) + abs(best_vector[1])
-		if total_steps < least_step_amount:
-			least_step_amount = total_steps
-			closest_coordinate = coordinate
-	return (closest_coordinate[0], closest_coordinate[1])	
-	
-def create_corner_map(n):
-	corner_map = {
-		(0,0) : (South, West),
-		(0,n-1) : (North, West),
-		(n-1,0) : (South, East),
-		(n-1,n-1): (North, East)
-	}
-	return corner_map
-	
-def point_reflect(coor):
-	ws = get_my_world_size()
-	x_refl = (ws - 1) - coor[0]
-	y_refl = (ws - 1) - coor[1]
-	return (x_refl,y_refl)
-	
-def axis_mirror(coor, axis):
-	x, y = coor
-	ws = get_my_world_size()
-	if axis == "x":
-		y_mirror = (ws - 1) - y
-		return (x, y_mirror)
-	
-	elif axis == "y":
-		x_mirror = (ws - 1) - x
-		return (x_mirror, y)
-		
-	else:
-		print("unknown axis: axis_mirror()")
-		return None
-		
-def create_board_map(x_start, y_start, x_size, y_size):
-	board_map = {}
-	for i in range(x_size):
-		for j in range(y_size):
-			board_map[i + x_start,j + y_start] = None
-	return board_map
 ############################## GETTER/SETTER ###############################
 	
 def get_current_x_direction():
@@ -247,17 +189,22 @@ def set_next_direction(direction):
 		print(str(direction) + " is not valid direction")
 		return
 	next_direction = direction
-		
-def set_my_world_size(n):
-	global my_world_size
-	if n > get_world_size():
-		print("Given world_size is too big")
-		return
-	my_world_size = n
+
+def set_last_step(direction):
+	global last_step
+	last_step = direction
 	
-def get_my_world_size():
-	global my_world_size
-	return my_world_size
+def get_last_step():
+	global last_step
+	return last_step
+		
+def get_prio_move():
+	global prio_move
+	return prio_move		
+		
+def set_prio_move(direction):
+	global prio_move
+	prio_move = direction
 		
 def reset_default_movement():
 	global next_direction
@@ -274,6 +221,11 @@ def reset_snake_movement():
 	next_direction = North
 	current_x_direction = East
 	current_y_direction = North
-
-
-		
+	
+def set_furthest_reached_x(x):
+	global furthest_reached_x
+	furthest_reached_x = x
+	
+def get_furthest_reached_x():
+	global furthest_reached_x
+	return furthest_reached_x

@@ -3,8 +3,8 @@ from __builtins__ import *
 from controller import *
 from coordinator import set_my_world_size
 clear()
-set_my_world_size(3)
+#set_my_world_size(6)
 while(True):
-	start_program("c_adv")
+	start_program("dino")
 	
 	

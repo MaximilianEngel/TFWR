@@ -1,7 +1,6 @@
 from tools import *
 from coordinator import *
-from harvestModes import *
 
-def cactus_harvest():
-	pass
-	
+
+use_item(Items.Fertilizer)
+harvest()

@@ -5,10 +5,13 @@ from sunflower_manager import *
 from pumpkin_manager import *
 from cactus_manager import *
 from cactus_manager_adv import *
+from mapper import *
+
 current_program = ""
 
 def start_program(str_program):
 	global current_program
+	change_hat(Hats.Wizard_Hat)
 	
 	if str_program not in programs:
 		print("invalid programm")
@@ -21,22 +24,6 @@ def poly_program():
 	while(get_current_program() == "poly"):
 		poly_plant_harvest()
 		default_movement()
-
-def cactus_program_column_driven():
-	reset_snake_movement()
-	reset_c_columns()
-	while(get_current_program() == "cactus"):
-		if get_entity_type() != Entities.Cactus:
-			soil()
-			plant(Entities.Cactus)
-		size = measure()
-		position = get_coordinates()
-		add_cactus_to_column(position, size)
-		
-		smart_swap(size)
-		b_next_column = snake_movement()
-		if b_next_column:
-			start_new_column()
 
 def cactus_program():
 	reset_snake_movement()
@@ -65,14 +52,77 @@ def cactus_program():
 			if was_harvested:
 				break
 				
+				
 def cactus_program_adv():
 	reset_snake_movement()
 	reset_cactus_field()
+	reset_free_spaces()
+	reset_blocked_fields()
+	
+	initial = True
+	first_cactus = True
+	end_point = None
+	checkpoints = {}
+
+	if isEven(get_my_world_size()):
+		end_point = axis_mirror(get_coordinates(), "y")
+	else:
+		end_point = point_reflect(get_coordinates())
+	
 	while(get_current_program() == "c_adv"):
-		plant_cactus()
-		cactus_movement(get_blocked_fields(), get_x_blocked(), get_check_list())
+		if initial:
+			if can_harvest():
+				harvest()
+			size = plant_cactus()
+			add_cactus(size)
+			if first_cactus:
+				set_biggest_size(size)
+				set_smallest_size(size)
+				first_cactus = False
+			elif size > get_biggest_size():
+				set_biggest_size(size)
+			elif size < get_smallest_size():
+				set_smallest_size(size)
+			if get_coordinates() == end_point:
+				initial = False
+				if isEven(get_my_world_size()):
+					checkpoints[point_reflect(end_point)] = False
+					checkpoints[end_point] = False
+				else:
+					checkpoints[axis_mirror(end_point, "y")] = False
+					checkpoints[axis_mirror(end_point, "x")] = False
 		
+		swapped = swap_cactus_adv(size, initial)
+		if swapped:
+			for cp in checkpoints:
+				checkpoints[cp] = False
 		
+		position = get_coordinates()
+		if not initial and position in checkpoints:
+			checkpoints[position] = True
+			
+		finished_cp = 0	
+		for cp in checkpoints:
+			if checkpoints[cp]:
+				finished_cp += 1
+				 
+		
+		if finished_cp == 2:
+			harvest()
+			return	
+		
+			
+		cactus_movement()
+		
+def weird_substance_program():
+	reset_default_movement()
+	
+	while(get_current_program() == "weird"):
+		make_weird_substance(poly_plant_harvest)
+		default_movement()
+		harvest()	
+			
+			
 def pumpkin_program():
 	reset_default_movement()
 	initial_run = True
@@ -116,6 +166,13 @@ def sunflower_rush_program():
 		plant_sunflower_field()
 		sunflower_harvest_clean()
 
+def dino_program():
+	change_hat(Hats.Dinosaur_Hat)
+	snake_movement()
+	while(get_current_program() == "dino"):
+		snake_movement()
+		
+
 
 def set_current_programm(cp):
 	global current_program
@@ -128,38 +185,6 @@ def set_current_programm(cp):
 def get_current_program():
 	global current_program
 	return current_program
-
-def verify_checkpoints(position, dict_checkpoints, ws_even):
-	remove_key = None				
-	for coordinate in dict_checkpoints:
-		if coordinate == position:
-			if dict_checkpoints[coordinate] == True:
-				wait_for_harvest(can_harvest())
-				return True
-			else:
-				remove_key = coordinate
-	
-					
-	next_dir = get_next_direction()
-	if next_dir in [North, South]:
-		if ws_even:
-			dict_checkpoints[axis_mirror(position, "y")] = True
-		else:
-			dict_checkpoints[point_reflect(position)] = True
-		if remove_key:	
-			dict_checkpoints.pop(remove_key)
-	return False
-
-def initialize_checkpoints(position, ws_even):
-	checkpoints = {}
-	if not ws_even:
-		checkpoints[point_reflect(position)] = True
-		checkpoints[axis_mirror(position, "y")] = False
-	else:
-		checkpoints[axis_mirror(position, "y")] = True
-		checkpoints[point_reflect(position)] = False
-	return checkpoints
-	
 	
 ############################## PROGRAM LIST ###############################
 	
@@ -168,5 +193,7 @@ programs = {
 	"pump": pumpkin_program,
 	"poly": poly_program,
 	"cactus": cactus_program,
-	"c_adv": cactus_program_adv
+	"c_adv": cactus_program_adv,
+	"weird": weird_substance_program,
+	"dino": dino_program
 }
