@@ -1,83 +1,66 @@
 from __builtins__ import *
-from utils import turn_soil
-from utils import turn_grass
+from mapper import *
+from utils import *
+from movement import *
 
 def plant_grass():
-	for i in range(get_world_size()):
-		turn_grass()
-		if can_harvest():
-			harvest()
-			if (get_pos_y() + get_pos_x()) % 2 == 1:
-				plant(Entities.Tree)
-		move(North)
+    if can_harvest():
+        harvest()
+    if (get_pos_y() + get_pos_x()) % 2 == 0:
+        turn_grass()
+
+def plant_tree():
+    if can_harvest():
+        harvest()
+    if (get_pos_y() + get_pos_x()) % 2 == 1:
+        plant(Entities.Tree)
 
 def plant_carrot():
-	for i in range(get_world_size()):
-		if can_harvest():
-			harvest()
-			if (get_pos_y() + get_pos_x()) % 2 == 0:
-				turn_soil()
-		if (get_pos_y() + get_pos_x()) % 2 == 0:
-			plant(Entities.Carrot)
-		elif (get_pos_y() + get_pos_x()) % 2 == 1:
-			plant(Entities.Tree)
-		move(North)
+    if can_harvest():
+        harvest()
+    if (get_pos_y() + get_pos_x()) % 2 == 0:
+        turn_soil()
+        plant(Entities.Carrot)
 
 def plant_pumpkin():
-	for i in range(get_world_size()):
-		harvest()
-		turn_soil()
-		plant(Entities.Pumpkin)
-		move(North)
+    harvest()
+    turn_soil()
+    plant(Entities.Pumpkin)
 
 def plant_sunflower():
-	clear()
-	sunflower_dict = {}
-	for petal_amount in range(7, 16):  # Dicts for coordinates later
-		sunflower_dict[petal_amount] = []
+    clear()
+    sunflower_dict = {}
+    for petal_amount in range(7, 16):  # Dicts to store coordinates based on petal amount
+        sunflower_dict[petal_amount] = []
 
-	for _ in range(get_world_size() / 2):
-		for StepCount in range(get_world_size(), 0, -1):
-			turn_soil()
-			plant(Entities.Sunflower)
-			petal_count = measure()
-			sunflower_dict[petal_count].append([get_pos_x(), get_pos_y()])
-			if StepCount != 1:
-				move(North)
-			else:
-				move(East)
-		for StepCount in range(get_world_size(), 0, -1):
-			turn_soil()
-			plant(Entities.Sunflower)
-			petal_count = measure()
-			sunflower_dict[petal_count].append([get_pos_x(), get_pos_y()])
-			if StepCount != 1:
-				move(South)
-			else:
-				move(East)
-	for list_number in range(15, 6, -1):
-		if list_number % 2 == 0:
-			index = -1
-		else:
-			index = 0
-		for sunflower_len_list in sunflower_dict[list_number]:
-			cord_x, cord_y = sunflower_dict[list_number][index]
-			move_x = get_pos_x() - cord_x
-			if move_x < 0:
-				for _ in range(abs(move_x)):
-					move(East)
-			if move_x > 0:
-				for _ in range(abs(move_x)):
-					move(West)
-			move_y = get_pos_y() - cord_y
-			if move_y < 0:
-				for _ in range(abs(move_y)):
-					move(North)
-			if move_y > 0:
-				for _ in range(abs(move_y)):
-					move(South)
-			harvest()
-			if index >= 0:
-				index += 1
-			else:
-				index -= 1
+    for step_count_moving_x in range((get_resized_world_x() * get_resized_world_y())):
+        turn_soil()
+        plant(Entities.Sunflower)
+        petal_count = measure()
+        sunflower_dict[petal_count].append([get_pos_x(), get_pos_y()]) #Adds coordinate in list
+        next_move()
+    for list_number in range(15, 6, -1): #loop for each list in sunflower_dict
+        if list_number % 2 == 0: #Swap harvest direction (start to end, end to start, start to end etc.)
+            index = -1
+        else:
+            index = 0
+        for sunflower_len_list in sunflower_dict[list_number]:
+            cord_x, cord_y = sunflower_dict[list_number][index]
+            move_to_xy(cord_x, cord_y)
+            harvest()
+            if index >= 0:
+                index += 1
+            else:
+                index -= 1
+
+def infest_field():
+    move_to_xy(0,0)
+    set_x_dir(West)
+    set_y_dir(North)
+    for steps_for_each_tile in range(get_resized_world_x() * get_resized_world_y()):
+        use_item(Items.Fertilizer)
+        harvest()
+        next_move()
+    move_to_xy(0,0)
+    set_x_dir(West)
+    set_y_dir(North)
