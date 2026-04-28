@@ -62,3 +62,8 @@ def set_x_dir(direction):
 
 def set_y_dir(direction):
     move_dir_dict["y_dir"] = direction
+
+def reset_drone():
+    move_to_xy(0,0)
+    set_x_dir(West)
+    set_y_dir(North)
