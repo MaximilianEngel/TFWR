@@ -1,6 +1,8 @@
 from __builtins__ import *
 
 pumpkin_yield = 0
+desired_pumpkins = 0
+desired_sunflowers = 0
 
 def turn_soil():
     if get_ground_type() != Grounds.Soil:
@@ -40,3 +42,19 @@ def set_pumpkin_yield():
 def get_pumpkin_yield():
     global pumpkin_yield
     return pumpkin_yield
+
+def set_desired_pumpkins(n):
+    global desired_pumpkins
+    desired_pumpkins = n
+
+def get_desired_pumpkins():
+    global desired_pumpkins
+    return desired_pumpkins
+
+def set_desired_sunflowers(n):
+    global desired_sunflowers
+    desired_sunflowers = n
+
+def get_desired_sunflowers():
+    global desired_sunflowers
+    return desired_sunflowers
