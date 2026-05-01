@@ -22,7 +22,16 @@ def plant_carrot():
         turn_soil()
         plant(Entities.Carrot)
 
-def plant_pumpkin():
+def plant_pumpkin(mode):
+    crop_type = "pumpkin"
+    if mode == "infested":
+        previous_desired_pumpkins = get_desired_pumpkins()
+        set_desired_pumpkins(num_items(Items.Pumpkin) + 2000000)
+        quick_print("initiated infested pumpkin mode")
+        quick_print("desired pumpkins increased!")
+    else:
+        quick_print("initiated normal pumpkin mode")
+
     pumpkin_last_checked_dict = {
         "pumpkin_coord_list":[]
     }
@@ -50,28 +59,25 @@ def plant_pumpkin():
 
     set_resized_world_x(dimensions)
     set_resized_world_y(dimensions)
+    quick_print("world resized to maximum!")
 
     for per_tile_on_map in range((get_resized_world_x() * get_resized_world_y())):
-        if get_resized_world_x() * get_resized_world_y() <= 36:
-            use_item(Items.Water, 4)
-        turn_soil()
-        plant(Entities.Pumpkin)
+        water_crop()
+        plant_crop(crop_type)
+        if mode == "infested":
+            use_item(Items.Fertilizer)
         next_move()
 
     reset_drone()
-
-    #Adding waiting for small fields to grow
-    harvestable = False
-    while not harvestable:
-        if can_harvest() or get_entity_type() == Entities.Dead_Pumpkin:
-            harvestable = True
+    wait_until_harvestable()
 
     #check every pumpkin
     for per_tile_on_map in range((get_resized_world_x() * get_resized_world_y())):
         if get_entity_type() == Entities.Dead_Pumpkin:
             pumpkin_last_checked_dict["pumpkin_coord_list"].append(location())
-            harvest()
-            plant(Entities.Pumpkin)
+            plant_crop(crop_type)
+            if mode == "infested":
+                use_item(Items.Fertilizer)
         next_move()
 
     #loop through list until empty
@@ -84,26 +90,23 @@ def plant_pumpkin():
             pumpkin_last_checked_dict["pumpkin_coord_list"].pop(0)
 
         elif get_entity_type() == Entities.Dead_Pumpkin:
-            harvest()
-            plant(Entities.Pumpkin)
+            plant_crop(crop_type)
+            if mode == "infested":
+                use_item(Items.Fertilizer)
 
             #pop and add location at end of list to recheck later
             pumpkin_last_checked_dict["pumpkin_coord_list"].pop(0)
             pumpkin_last_checked_dict["pumpkin_coord_list"].append(location())
 
             #watering to speed up grow speed
-            #this should keep it between 0.74 and 0.99 (watering it to 0.99 if value is 0.74)
-            #<0.75 to not hit 0 (throws an error)
             if len(pumpkin_last_checked_dict["pumpkin_coord_list"]) <= 3:
                 if len(pumpkin_last_checked_dict["pumpkin_coord_list"]) > 0:
-                    if get_water() < 0.75:
-                        use_item(Items.Water, ((1 - get_water()) // 0.25))
+                    water_crop(False)
 
         else:#in case it's still growing (likely to happen towards the end, 1-3 pumpkins left)
             pumpkin_last_checked_dict["pumpkin_coord_list"].pop(0)
             pumpkin_last_checked_dict["pumpkin_coord_list"].append(location())
 
-    #reset to initialize other programs with correct values
     reset_drone()
     print("It's about time!")
     harvest()
@@ -111,18 +114,20 @@ def plant_pumpkin():
     # reset to old field size values
     set_resized_world_x(previous_field_size_x)
     set_resized_world_y(previous_field_size_y)
+    quick_print("world resized to previous values!")
+    if mode == "infested":
+        set_desired_pumpkins(previous_desired_pumpkins)
+        quick_print("desired pumpkins reverted to old value!")
 
 def plant_sunflower():
+    crop_type = "sunflower"
     reset_drone()
     sunflower_dict = {}
     for petal_amount in range(7, 16):  # Dicts to store coordinates based on petal amount
         sunflower_dict[petal_amount] = []
 
     for per_tile_on_map in range((get_resized_world_x() * get_resized_world_y())):
-        if get_entity_type() != None:
-            harvest()
-        turn_soil()
-        plant(Entities.Sunflower)
+        plant_crop(crop_type)
         petal_count = measure()
         sunflower_dict[petal_count].append([get_pos_x(), get_pos_y()]) #Adds coordinate in list
         next_move()
@@ -134,6 +139,7 @@ def plant_sunflower():
         for sunflower_len_list in sunflower_dict[list_number]:
             cord_x, cord_y = sunflower_dict[list_number][index]
             move_to_xy(cord_x, cord_y)
+            wait_until_harvestable()
             harvest()
             if index >= 0:
                 index += 1
@@ -146,5 +152,14 @@ def infest_field():
     for per_tile_on_map in range(get_resized_world_x() * get_resized_world_y()):
         use_item(Items.Fertilizer)
         harvest()
+        next_move()
+    reset_drone()
+
+def companion_field():
+    crop_type = "companion"
+    reset_drone()
+    for per_tile_on_map in range((get_resized_world_x() * get_resized_world_y())):
+        plant_crop(crop_type)
+        add_to_companion_dict()
         next_move()
     reset_drone()
